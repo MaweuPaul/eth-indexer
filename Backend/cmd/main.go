@@ -19,7 +19,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
-	log.Println("✅ Connected to database!")
+	log.Println("Connected to database!")
 
 	contracts := []string{
 		"0xdAC17F958D2ee523a2206206994597C13D831ec7", // USDT
