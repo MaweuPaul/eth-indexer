@@ -33,7 +33,7 @@ func main() {
 	// Run API in background
 	a := api.New(db)
 	go func() {
-		log.Println("🌐 API running on port", cfg.Port)
+		log.Println("API running on port", cfg.Port)
 		if err := a.Start(cfg.Port); err != nil {
 			log.Fatal("API error:", err)
 		}
