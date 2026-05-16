@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/MaweuPaul/eth-indexer/internal/decoder"
+	"github.com/MaweuPaul/eth-indexer/internal/hub"
 	"github.com/MaweuPaul/eth-indexer/internal/store"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -16,10 +17,11 @@ type Indexer struct {
 	client    *ethclient.Client
 	store     *store.Store
 	decoder   *decoder.Decoder
+	hub       *hub.Hub
 	contracts []common.Address
 }
 
-func New(alchemyURL string, store *store.Store, contracts []string) (*Indexer, error) {
+func New(alchemyURL string, store *store.Store, h *hub.Hub, contracts []string) (*Indexer, error) {
 	client, err := ethclient.Dial(alchemyURL)
 	if err != nil {
 		return nil, err
@@ -35,7 +37,7 @@ func New(alchemyURL string, store *store.Store, contracts []string) (*Indexer, e
 		addresses = append(addresses, common.HexToAddress(c))
 	}
 
-	return &Indexer{client: client, store: store, decoder: dec, contracts: addresses}, nil
+	return &Indexer{client: client, store: store, decoder: dec, hub: h, contracts: addresses}, nil
 }
 
 func (i *Indexer) Start(ctx context.Context) error {
@@ -81,6 +83,12 @@ func (i *Indexer) handleLog(vLog types.Log) {
 		log.Println("Failed to save event:", err)
 		return
 	}
+
+	// broadcast to connected websocket clients
+	i.hub.Broadcast(&hub.Event{
+		Type: "new_event",
+		Data: event,
+	})
 
 	log.Printf("%s | block %d | from %s", decoded.Name, vLog.BlockNumber, decoded.Fields["from"])
 }
