@@ -21,7 +21,7 @@ type Hub struct {
 func NewHub() *Hub {
 	return &Hub{
 		clients:   make(map[*websocket.Conn]bool),
-		broadcast: make(chan *Event),
+		broadcast: make(chan *Event, 100),
 	}
 }
 
