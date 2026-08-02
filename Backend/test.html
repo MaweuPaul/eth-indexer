@@ -1,0 +1,1262 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ETH_INDEXER</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #f5f4f0;
+        --surface: #ffffff;
+        --border: #e2e0da;
+        --border-dark: #c8c5bc;
+        --text: #1a1a1a;
+        --muted: #888880;
+        --muted2: #b0ada5;
+        --accent: #1a1a1a;
+        --green: #22c55e;
+        --green-bg: #dcfce7;
+        --whale-bg: #fff7ed;
+        --whale-border: #fed7aa;
+        --whale-text: #ea580c;
+        --sidebar-w: 220px;
+        --header-h: 56px;
+      }
+
+      html,
+      body {
+        height: 100%;
+        font-family: 'IBM Plex Sans', sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      /* ── Layout ── */
+      .app {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      /* ── Header ── */
+      header {
+        height: var(--header-h);
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        flex-shrink: 0;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo-icon {
+        width: 32px;
+        height: 32px;
+        background: var(--text);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .logo-icon svg {
+        color: #fff;
+      }
+
+      .logo-text {
+        font-family: 'IBM Plex Mono', monospace;
+        font-weight: 700;
+        font-size: 0.95rem;
+        letter-spacing: 0.05em;
+      }
+
+      .live-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border: 1px solid var(--border-dark);
+        border-radius: 20px;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.65rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        color: var(--text);
+      }
+
+      .live-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 6px var(--green);
+        animation: blink 2s infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .block-info {
+        text-align: right;
+        font-family: 'IBM Plex Mono', monospace;
+      }
+      .block-label {
+        font-size: 0.6rem;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .block-val {
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .wallet-chip {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 12px;
+        border: 1px solid var(--border-dark);
+        border-radius: 6px;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+
+      /* ── Body ── */
+      .body {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      /* ── Sidebar ── */
+      aside {
+        width: var(--sidebar-w);
+        flex-shrink: 0;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        padding: 20px 0;
+      }
+
+      .sidebar-section {
+        padding: 0 14px;
+        margin-bottom: 6px;
+      }
+      .sidebar-section-label {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        text-transform: uppercase;
+        padding: 0 8px;
+        margin-bottom: 8px;
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px;
+        border-radius: 6px;
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--muted);
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          color 0.15s;
+        margin-bottom: 2px;
+      }
+      .nav-item:hover {
+        background: var(--bg);
+        color: var(--text);
+      }
+      .nav-item.active {
+        background: var(--bg);
+        color: var(--text);
+        font-weight: 600;
+      }
+      .nav-item svg {
+        opacity: 0.6;
+        flex-shrink: 0;
+      }
+      .nav-item.active svg {
+        opacity: 1;
+      }
+
+      .sidebar-bottom {
+        margin-top: auto;
+        padding: 16px;
+      }
+
+      .uptime-card {
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        border-radius: 10px;
+        overflow: hidden;
+        padding: 14px;
+        position: relative;
+        min-height: 100px;
+      }
+      .uptime-bg {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            ellipse at 30% 50%,
+            rgba(0, 229, 160, 0.15),
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse at 80% 20%,
+            rgba(99, 102, 241, 0.2),
+            transparent 50%
+          );
+      }
+      .uptime-label {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.6rem;
+        color: rgba(255, 255, 255, 0.5);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        position: relative;
+      }
+      .uptime-val {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #fff;
+        margin-top: 6px;
+        position: relative;
+      }
+
+      /* ── Main ── */
+      main {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      /* ── Stat cards ── */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+      }
+
+      .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        transition: border-color 0.2s;
+      }
+      .stat-card:hover {
+        border-color: var(--border-dark);
+      }
+
+      .stat-card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .stat-card-label {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .stat-icon {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted2);
+      }
+
+      .stat-value {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 1.6rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1;
+        margin-bottom: 6px;
+      }
+
+      .stat-sub {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.68rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .stat-sub.up {
+        color: #16a34a;
+      }
+      .stat-sub.warn {
+        color: var(--whale-text);
+      }
+
+      /* ── Live stream panel ── */
+      .stream-panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .stream-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      .stream-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .stream-title h2 {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+
+      .ws-badge {
+        padding: 3px 8px;
+        background: var(--text);
+        color: #fff;
+        border-radius: 4px;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.6rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+      }
+      .ws-badge.disconnected {
+        background: var(--muted2);
+      }
+
+      .tab-bar {
+        display: flex;
+        gap: 0;
+      }
+
+      .tab {
+        padding: 8px 18px;
+        border: none;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        background: transparent;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--muted);
+        cursor: pointer;
+        letter-spacing: 0.04em;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+      }
+      .tab:hover {
+        color: var(--text);
+      }
+      .tab.active {
+        color: var(--text);
+        font-weight: 600;
+        border-bottom-color: var(--text);
+      }
+
+      /* keep these for compat but hidden */
+      .filter-btn {
+        display: none;
+        padding: 4px 10px;
+        border: 1px solid var(--border-dark);
+        border-radius: 4px;
+        background: transparent;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.62rem;
+        cursor: pointer;
+        color: var(--muted);
+        letter-spacing: 0.05em;
+        transition: all 0.15s;
+      }
+      .filter-btn:hover,
+      .filter-btn.active {
+        background: var(--text);
+        color: #fff;
+        border-color: var(--text);
+      }
+
+      /* ── Table ── */
+      .table-wrap {
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+      }
+      .table-wrap::-webkit-scrollbar {
+        width: 4px;
+      }
+      .table-wrap::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 2px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      thead tr {
+        border-bottom: 1px solid var(--border);
+      }
+
+      th {
+        padding: 10px 20px;
+        text-align: left;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      th:last-child {
+        text-align: right;
+      }
+
+      tbody tr {
+        border-bottom: 1px solid rgba(226, 224, 218, 0.5);
+        transition: background 0.12s;
+        animation: rowIn 0.2s ease-out;
+      }
+      @keyframes rowIn {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      tbody tr:hover {
+        background: var(--bg);
+      }
+      tbody tr.whale-row {
+        background: var(--whale-bg);
+      }
+      tbody tr.whale-row:hover {
+        background: #fff1e5;
+      }
+
+      td {
+        padding: 13px 20px;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.75rem;
+        vertical-align: middle;
+      }
+      td:last-child {
+        text-align: right;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 8px;
+        border: 1px solid var(--border-dark);
+        border-radius: 3px;
+        font-size: 0.62rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text);
+      }
+      .tag.whale-tag {
+        background: var(--text);
+        color: #fff;
+        border-color: var(--text);
+        margin-left: 5px;
+      }
+
+      .addr {
+        color: var(--muted);
+        font-size: 0.72rem;
+      }
+
+      .amount {
+        font-weight: 600;
+      }
+      .amount.big {
+        color: var(--whale-text);
+        font-weight: 700;
+      }
+
+      .block-td {
+        color: var(--muted2);
+        font-size: 0.7rem;
+      }
+
+      /* empty state */
+      .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 0;
+        gap: 10px;
+        color: var(--muted);
+      }
+      .empty-spinner {
+        width: 24px;
+        height: 24px;
+        border: 2px solid var(--border);
+        border-top-color: var(--text);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .empty-state p {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      /* ── Footer ── */
+      footer {
+        flex-shrink: 0;
+        padding: 14px 20px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--surface);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.62rem;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+      }
+      footer a {
+        color: var(--muted);
+        text-decoration: none;
+      }
+      footer a:hover {
+        color: var(--text);
+      }
+      .footer-links {
+        display: flex;
+        gap: 16px;
+      }
+      .engine {
+        color: var(--muted2);
+      }
+
+      /* ── Mobile nav ── */
+      .mobile-nav {
+        display: none;
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 900px) {
+        aside {
+          display: none;
+        }
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .block-info,
+        .wallet-chip {
+          display: none;
+        }
+      }
+
+      @media (max-width: 600px) {
+        aside {
+          display: none;
+        }
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+        main {
+          padding: 14px;
+        }
+        .mobile-nav {
+          display: flex;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: var(--surface);
+          border-top: 1px solid var(--border);
+          z-index: 200;
+        }
+        .mobile-nav-item {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 10px 0;
+          gap: 4px;
+          font-family: 'IBM Plex Mono', monospace;
+          font-size: 0.55rem;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--muted);
+          cursor: pointer;
+        }
+        .mobile-nav-item.active {
+          color: var(--text);
+        }
+        .app {
+          padding-bottom: 60px;
+        }
+        footer {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <!-- Header -->
+      <header>
+        <div class="header-left">
+          <div class="logo-icon">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <ellipse cx="12" cy="5" rx="9" ry="3" />
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+            </svg>
+          </div>
+          <span class="logo-text">ETH_INDEXER</span>
+          <div class="live-badge">
+            <div class="live-dot" id="live-dot"></div>
+            <span id="live-label">LIVE_FEED_ACTIVE</span>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="block-info">
+            <div class="block-label">CURRENT_BLOCK</div>
+            <div class="block-val" id="hdr-block">—</div>
+          </div>
+          <div class="wallet-chip">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="2" y="7" width="20" height="14" rx="2" />
+              <path d="M16 7V5a2 2 0 0 0-4 0v2" />
+              <line x1="12" y1="12" x2="12" y2="16" />
+              <circle cx="12" cy="12" r="1" fill="currentColor" />
+            </svg>
+            <span>0x71C...492</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="body">
+        <!-- Sidebar -->
+        <aside>
+          <div class="sidebar-section">
+            <div class="sidebar-section-label">NETWORK STATUS</div>
+            <div style="padding: 0 8px; margin-bottom: 18px">
+              <div
+                style="
+                  font-family: 'IBM Plex Mono', monospace;
+                  font-size: 0.72rem;
+                  font-weight: 600;
+                  color: var(--text);
+                "
+                id="net-status"
+              >
+                CONNECTED: MAINNET_WS
+              </div>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="nav-item active" onclick="setNav(this)">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="2" />
+                <path
+                  d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"
+                />
+              </svg>
+              Live Feed
+            </div>
+            <div class="nav-item" onclick="setNav(this)">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              Whale Watch
+            </div>
+            <div class="nav-item" onclick="setNav(this)">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+              Smart Contracts
+            </div>
+            <div class="nav-item" onclick="setNav(this)">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="3" />
+                <path
+                  d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"
+                />
+              </svg>
+              Settings
+            </div>
+          </div>
+
+          <div class="sidebar-bottom">
+            <div class="uptime-card">
+              <div class="uptime-bg"></div>
+              <div class="uptime-label">Uptime</div>
+              <div class="uptime-val">99.98%</div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main -->
+        <main>
+          <!-- Stats -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-card-top">
+                <div class="stat-card-label">TOTAL EVENTS</div>
+                <div class="stat-icon">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <line x1="8" y1="6" x2="21" y2="6" />
+                    <line x1="8" y1="12" x2="21" y2="12" />
+                    <line x1="8" y1="18" x2="21" y2="18" />
+                    <line x1="3" y1="6" x2="3.01" y2="6" />
+                    <line x1="3" y1="12" x2="3.01" y2="12" />
+                    <line x1="3" y1="18" x2="3.01" y2="18" />
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value" id="s-total">0</div>
+              <div class="stat-sub up" id="s-total-sub">— events indexed</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-top">
+                <div class="stat-card-label">TRANSFER EVENTS</div>
+                <div class="stat-icon">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <polyline points="17 1 21 5 17 9" />
+                    <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                    <polyline points="7 23 3 19 7 15" />
+                    <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value" id="s-transfers">0</div>
+              <div class="stat-sub" id="s-transfers-sub">0% OF TOTAL</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-top">
+                <div class="stat-card-label">APPROVAL EVENTS</div>
+                <div class="stat-icon">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value" id="s-approvals">0</div>
+              <div class="stat-sub" id="s-approvals-sub">0% OF TOTAL</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-top">
+                <div class="stat-card-label" style="font-weight: 700">
+                  WHALE MOVEMENTS
+                </div>
+                <div class="stat-icon">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value" id="s-whales">0</div>
+              <div class="stat-sub warn">! LAST 24H (&gt; $100k)</div>
+            </div>
+          </div>
+
+          <!-- Live stream -->
+          <div class="stream-panel">
+            <div class="stream-header">
+              <div class="stream-title">
+                <h2>LIVE_STREAM</h2>
+                <div class="ws-badge" id="ws-badge">WS_ACTIVE</div>
+              </div>
+              <div class="filter-bar">
+                <div class="filter-dot" id="filter-dot"></div>
+                <span class="filter-label">FILTER:</span>
+                <button
+                  class="filter-btn active"
+                  onclick="setFilter('ALL', this)"
+                >
+                  ALL
+                </button>
+                <button
+                  class="filter-btn"
+                  onclick="setFilter('TRANSFER', this)"
+                >
+                  TRANSFER
+                </button>
+                <button
+                  class="filter-btn"
+                  onclick="setFilter('APPROVAL', this)"
+                >
+                  APPROVAL
+                </button>
+                <button class="filter-btn" onclick="setFilter('WHALE', this)">
+                  WHALE
+                </button>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  style="color: var(--muted); margin-left: 4px"
+                >
+                  <line x1="21" y1="6" x2="3" y2="6" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                  <line x1="9" y1="18" x2="3" y2="18" />
+                </svg>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>EVENT TYPE</th>
+                    <th>FROM ADDRESS</th>
+                    <th>TO ADDRESS</th>
+                    <th style="text-align: right">AMOUNT (USDT)</th>
+                    <th style="text-align: right">BLOCK</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody">
+                  <tr>
+                    <td colspan="5">
+                      <div class="empty-state">
+                        <div class="empty-spinner"></div>
+                        <p>Waiting for events…</p>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <!-- Footer -->
+      <footer>
+        <div>
+          © 2024 ETHEREUM_EVENT_INDEXER // ANALYTICAL_PRECISION &nbsp;
+          <span class="footer-links">
+            <a href="#">Docs</a>
+            <a href="#">API_Status</a>
+            <a href="#">Github</a>
+          </span>
+        </div>
+        <div class="engine">ENGINE: GO_V1.17</div>
+      </footer>
+
+      <!-- Mobile nav -->
+      <nav class="mobile-nav">
+        <div class="mobile-nav-item active">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="2" />
+            <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49" />
+          </svg>
+          FEED
+        </div>
+        <div class="mobile-nav-item">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          WHALES
+        </div>
+        <div class="mobile-nav-item">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" />
+          </svg>
+          SMART
+        </div>
+        <div class="mobile-nav-item">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"
+            />
+          </svg>
+          CONFIG
+        </div>
+      </nav>
+    </div>
+
+    <script>
+      // ── State ──
+      const stats = { total: 0, transfers: 0, approvals: 0, whales: 0 };
+      let currentFilter = 'ALL';
+      let allEvents = [];
+      let latestBlock = null;
+
+      // ── Helpers ──
+      function fmtAddr(addr) {
+        if (!addr) return '—';
+        const clean = addr.replace(/^0x0{24}/, '0x');
+        return clean.slice(0, 6) + '...' + clean.slice(-4);
+      }
+
+      function fmtAmount(raw) {
+        if (!raw || raw === '0') return '0.00';
+        try {
+          const n = Number(BigInt(raw)) / 1e6;
+          return n.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+        } catch {
+          return '—';
+        }
+      }
+
+      function fmtNumber(n) {
+        return n.toLocaleString('en-US');
+      }
+
+      function pct(part, total) {
+        if (!total) return '0%';
+        return ((part / total) * 100).toFixed(1) + '%';
+      }
+
+      // ── Stats update ──
+      function updateStats() {
+        document.getElementById('s-total').textContent = fmtNumber(stats.total);
+        document.getElementById('s-total-sub').textContent =
+          '+' + stats.total + ' events indexed';
+        document.getElementById('s-transfers').textContent = fmtNumber(
+          stats.transfers,
+        );
+        document.getElementById('s-transfers-sub').textContent =
+          pct(stats.transfers, stats.total) + ' OF TOTAL';
+        document.getElementById('s-approvals').textContent = fmtNumber(
+          stats.approvals,
+        );
+        document.getElementById('s-approvals-sub').textContent =
+          pct(stats.approvals, stats.total) + ' OF TOTAL';
+        document.getElementById('s-whales').textContent = fmtNumber(
+          stats.whales,
+        );
+        if (latestBlock) {
+          document.getElementById('hdr-block').textContent =
+            fmtNumber(latestBlock);
+        }
+      }
+
+      // ── Filter ──
+      function setFilter(f, btn) {
+        currentFilter = f;
+        document
+          .querySelectorAll('.filter-btn')
+          .forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderTable();
+      }
+
+      function setNav(el) {
+        document
+          .querySelectorAll('.nav-item')
+          .forEach((n) => n.classList.remove('active'));
+        el.classList.add('active');
+      }
+
+      // ── Table render ──
+      function renderTable() {
+        const tbody = document.getElementById('tbody');
+        const filtered = allEvents.filter((ev) => {
+          if (currentFilter === 'ALL') return true;
+          if (currentFilter === 'WHALE') return ev._whale;
+          return ev.EventName === currentFilter;
+        });
+
+        if (!filtered.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="5"><div class="empty-state"><div class="empty-spinner"></div><p>Waiting for events…</p></div></td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = filtered
+          .slice(0, 100)
+          .map((ev) => {
+            const d = ev.Data || ev.data || {};
+            const from = fmtAddr(d.from);
+            const to = fmtAddr(d.to);
+            const amount = fmtAmount(d.value);
+            const isWhale = ev._whale;
+            const amtClass = isWhale ? 'amount big' : 'amount';
+            const whaleBadge = isWhale
+              ? '<span class="tag whale-tag">WHALE</span>'
+              : '';
+
+            return `<tr class="${isWhale ? 'whale-row' : ''}">
+      <td><span class="tag">${ev.EventName || '?'}</span>${whaleBadge}</td>
+      <td class="addr">${from}</td>
+      <td class="addr">${to}</td>
+      <td class="${amtClass}">${amount}</td>
+      <td class="block-td">${ev.BlockNumber ? fmtNumber(ev.BlockNumber) : '—'}</td>
+    </tr>`;
+          })
+          .join('');
+      }
+
+      // ── Add event ──
+      function addEvent(ev) {
+        const d = ev.Data || ev.data || {};
+        const usdt = d.value ? Number(BigInt(d.value)) / 1e6 : 0;
+        ev._whale = usdt >= 100_000;
+
+        stats.total++;
+        if (ev.EventName === 'Transfer') stats.transfers++;
+        if (ev.EventName === 'Approval') stats.approvals++;
+        if (ev._whale) stats.whales++;
+        if (ev.BlockNumber) latestBlock = ev.BlockNumber;
+
+        allEvents.unshift(ev);
+        if (allEvents.length > 500) allEvents.pop();
+
+        updateStats();
+        renderTable();
+      }
+
+      // ── WebSocket ──
+      let ws, retryTimer;
+
+      function setConnected(ok) {
+        const dot = document.getElementById('live-dot');
+        const label = document.getElementById('live-label');
+        const badge = document.getElementById('ws-badge');
+        const fdot = document.getElementById('filter-dot');
+        const nstat = document.getElementById('net-status');
+
+        if (ok) {
+          dot.style.background = 'var(--green)';
+          label.textContent = 'LIVE_FEED_ACTIVE';
+          badge.textContent = 'WS_ACTIVE';
+          badge.className = 'ws-badge';
+          fdot.style.background = 'var(--green)';
+          nstat.textContent = 'CONNECTED: MAINNET_WS';
+        } else {
+          dot.style.background = '#ef4444';
+          dot.style.boxShadow = '0 0 6px #ef4444';
+          label.textContent = 'DISCONNECTED';
+          badge.textContent = 'WS_INACTIVE';
+          badge.className = 'ws-badge disconnected';
+          fdot.style.background = '#ef4444';
+          nstat.textContent = 'DISCONNECTED';
+        }
+      }
+
+      function connect() {
+        ws = new WebSocket('ws://localhost:3000/ws');
+
+        ws.onopen = () => {
+          setConnected(true);
+          clearTimeout(retryTimer);
+        };
+
+        ws.onmessage = (e) => {
+          try {
+            const msg = JSON.parse(e.data);
+            const ev = msg.data || msg;
+            addEvent(ev);
+          } catch (err) {
+            console.warn('parse error', err);
+          }
+        };
+
+        ws.onclose = () => {
+          setConnected(false);
+          retryTimer = setTimeout(connect, 3000);
+        };
+
+        ws.onerror = () => ws.close();
+      }
+
+      connect();
+    </script>
+  </body>
+</html>
